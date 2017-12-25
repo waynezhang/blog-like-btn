@@ -34,7 +34,7 @@ like button implementation of [my blog](https://github.com/waynezhang/blog)
     </span>
     <script type="text/javascript">
       var l = document.createElement('script');
-      l.type = 'text/javascript'; l.async = true; l.src = 'http://like.lhzhang.com/javascript/widget.js';
+      l.type = 'text/javascript'; l.async = true; l.src = 'http://like.lhzhang.com/javascript/widget.js';  // change this url to your firebase hosting url of widget.js
       (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(l);
     </script>
     ```
