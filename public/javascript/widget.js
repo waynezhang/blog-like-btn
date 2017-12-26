@@ -1,119 +1,119 @@
 class Like {
 
   getServer() {
-    return 'https://like.lhzhang.com'
+    return 'https://like.lhzhang.com';
   }
 
   count(e) {
-    this.request(e, 'GET', '/count')
+    this.request(e, 'GET', '/count');
   }
 
   like(e) {
-    this.request(e, 'POST', '/like')
+    this.request(e, 'POST', '/like');
   }
 
   load() {
     document.querySelectorAll('.like-wrapper').forEach((e) => {
-      this.count(e)
-    })
+      this.count(e);
+    });
   }
 
   getParams(e) {
-    let param = ''
-    param += 'shortname=' + e.getAttribute('like-shortname')
-    param += '&identifier=' + encodeURIComponent(e.getAttribute('like-identifier'))
+    let param = '';
+    param += 'shortname=' + e.getAttribute('like-shortname');
+    param += '&identifier=' + encodeURIComponent(e.getAttribute('like-identifier'));
 
-    const cookie = this.getCookie('_like_u')
+    const cookie = this.getCookie('_like_u');
     if (cookie) {
-      param += '&user=' + cookie
+      param += '&user=' + cookie;
     }
 
-    const like_name = e.getAttribute('like-name')
+    const like_name = e.getAttribute('like-name');
     if (like_name) {
-      param += '&name=' + encodeURIComponent(like_name)
+      param += '&name=' + encodeURIComponent(like_name);
     }
 
-    const like_link = e.getAttribute('like-link')
+    const like_link = e.getAttribute('like-link');
     if (like_link) {
-      param += '&link=' + encodeURIComponent(like_link)
+      param += '&link=' + encodeURIComponent(like_link);
     }
 
-    return param
+    return param;
   }
 
   request(e, method, path) {
-    let req = this.getHttpRequest()
+    let req = this.getHttpRequest();
 
     req.onreadystatechange = () => {
       if (req.readyState === 4 && req.status === 200) {
-        this.updateWrapper(e, JSON.parse(req.responseText))
+        this.updateWrapper(e, JSON.parse(req.responseText));
       }
-    }
+    };
 
-    const params = this.getParams(e)
+    const params = this.getParams(e);
 
-    let url = this.getServer() + path
+    let url = this.getServer() + path;
     if (method === 'GET') {
-      url += '?' + params
+      url += '?' + params;
     }
 
-    req.open(method, url, true)
-    req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
+    req.open(method, url, true);
+    req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 
     if (method === 'POST') {
-      req.send(params)
+      req.send(params);
     } else {
-      req.send(null)
+      req.send(null);
     }
   }
 
   getHttpRequest() { 
-    return window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject('Microsoft.XMLHTTP')
+    return window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject('Microsoft.XMLHTTP');
   }
 
   getCookie(name) {
-    return decodeURIComponent((document.cookie.match(new RegExp('\b?' + name.replace(/([^\s\w])/g, '\\$1') + '=(.*?)(?:;|$)','i')) || [ null, '' ])[1])
+    return decodeURIComponent((document.cookie.match(new RegExp('\b?' + name.replace(/([^\s\w])/g, '\\$1') + '=(.*?)(?:;|$)','i')) || [ null, '' ])[1]);
   }
 
   // cors cookie is not allowed on some browser like safari, workaround needed
   setCookie(name, val) {
     if (name && val) {
-      document.cookie = name+ '=' + encodeURIComponent(val) + '; path=/; expires=Thu, 15 Oct 2099 00:00:00 GMT'
+      document.cookie = name+ '=' + encodeURIComponent(val) + '; path=/; expires=Thu, 15 Oct 2099 00:00:00 GMT';
     }
   }
 
   updateWrapper(e, result) {
     if (!result || !result.user) {
-      return console.error('error result')
+      return console.error('error result');
     }
 
     while(e.firstChild) {
-      e.removeChild(e.firstChild)
+      e.removeChild(e.firstChild);
     }
 
-    let n = document.createElement('span')
-    n.className = 'like-button'
+    let n = document.createElement('span');
+    n.className = 'like-button';
 
-    const like_btn = e.getAttribute('like-btn')
-    n.innerHTML = like_btn ? like_btn : 'like'
+    const like_btn = e.getAttribute('like-btn');
+    n.innerHTML = like_btn ? like_btn : 'like';
 
     if (result.liked) {
-      n.className += ' liked'
-      e.style.cursor = 'default'
+      n.className += ' liked';
+      e.style.cursor = 'default';
     } else {
-      n.addEventListener('click', () => this.like(e))
-      e.style.cursor = 'pointer'
+      n.addEventListener('click', () => this.like(e));
+      e.style.cursor = 'pointer';
     }
 
-    e.appendChild (n)
+    e.appendChild(n);
 
-    let c = document.createElement('span')
-    c.className = 'like-count'
-    c.innerHTML = '(' + result.count + ')'
-    e.appendChild(c)
+    let c = document.createElement('span');
+    c.className = 'like-count';
+    c.innerHTML = '(' + result.count + ')';
+    e.appendChild(c);
 
-    this.setCookie('_like_u', result.user)
+    this.setCookie('_like_u', result.user);
   }
 }
 
-new Like().load()
+new Like().load();
