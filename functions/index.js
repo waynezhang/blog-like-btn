@@ -19,7 +19,12 @@ const admin = require('firebase-admin')
 admin.initializeApp(functions.config().firebase)
 
 function onCount(req, res) {
-  const ref = '/entries/' + req.query.identifier
+  const identifier = req.query.identifier
+  if (!identifier) {
+    return res.status(400).send('Bad Request')
+  }
+
+  const ref = '/entries/' + identifier
 
   admin.database()
     .ref('/entries/' + req.query.identifier)
@@ -48,7 +53,7 @@ function onLike(req, res) {
     return res.status(400).send('Bad Request')
   }
 
-  const ref = '/entries/' + req.body.identifier
+  const ref = '/entries/' + identifier
 
   admin.database().ref(ref)
     .once('value')

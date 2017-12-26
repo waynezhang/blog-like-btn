@@ -50,15 +50,16 @@ class Like {
       }
     }
 
-    let url = this.getServer() + path
     const params = this.getParams(e)
 
+    let url = this.getServer() + path
     if (method === 'GET') {
       url += '?' + params
     }
 
     req.open(method, url, true)
-    req.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+    req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
+
     if (method === 'POST') {
       req.send(params)
     } else {
@@ -67,15 +68,14 @@ class Like {
   }
 
   getHttpRequest() { 
-    if (window.XMLHttpRequest) {
-      return window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject('Microsoft.XMLHTTP')
-    }
+    return window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject('Microsoft.XMLHTTP')
   }
 
   getCookie(name) {
-    return decodeURIComponent((document.cookie.match(new RegExp('\b?' + name.replace(/([^\s\w])/g,"\\$1") + '=(.*?)(?:;|$)','i')) || [null,''])[1])
+    return decodeURIComponent((document.cookie.match(new RegExp('\b?' + name.replace(/([^\s\w])/g, '\\$1') + '=(.*?)(?:;|$)','i')) || [ null, '' ])[1])
   }
 
+  // cors cookie is not allowed on some browser like safari, workaround needed
   setCookie(name, val) {
     if (name && val) {
       document.cookie = name+ '=' + encodeURIComponent(val) + '; path=/; expires=Thu, 15 Oct 2099 00:00:00 GMT'
@@ -95,7 +95,7 @@ class Like {
     n.className = 'like-button'
 
     const like_btn = e.getAttribute('like-btn')
-    n.innerHTML = like_btn ? like_btn : "like"
+    n.innerHTML = like_btn ? like_btn : 'like'
 
     if (result.liked) {
       n.className += ' liked'
