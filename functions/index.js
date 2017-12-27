@@ -1,7 +1,10 @@
 'use strict';
 
+const uuid = require('uuid');
+const moment = require('moment');
+
 const whitelist = [ 'http://lhzhang.com' ];
-const corsOptions = {
+const cors = require('cors')({
   origin: function (origin, callback) {
     if (whitelist.indexOf(origin) !== -1) {
       callback(null, true);
@@ -9,40 +12,37 @@ const corsOptions = {
       callback(new Error('Not allowed by CORS'));
     }
   }
-};
-const cors = require('cors')(corsOptions);
-
-const uuid = require('uuid');
+});
 const functions = require('firebase-functions');
-
 const admin = require('firebase-admin');
 admin.initializeApp(functions.config().firebase);
 
+const db = admin.database();
+
 function onCount(req, res) {
-  const identifier = req.query.identifier;
-  if (!identifier) {
+  const { identifier, shortname } = req.query;
+  if (!identifier || !shortname) {
     return res.status(400).send('Bad Request');
   }
 
-  const ref = '/entries/' + identifier;
+  const ref = [ shortname, 'entries', identifier, 'users' ].join('/');
 
-  admin.database()
-    .ref(ref)
+  db.ref(ref)
     .once('value')
     .then((snapshot) => {
-      let ret = {
+      const ret = {
         liked: false,
         count: 0,
-        user: req.query.user ? req.query.user : uuid.v4()
+        user: req.query.user || uuid.v4()
       };
 
-      let val = snapshot.val();
+      const val = snapshot.val();
       if (!val) {
         return res.status(200).json(ret);
       }
 
-      ret.count = val.users.length;
-      ret.liked = val.users.indexOf(ret.user) >= 0;
+      ret.count = val.length;
+      ret.liked = val.indexOf(ret.user) >= 0;
       res.status(200).json(ret);
     });
 }
@@ -53,40 +53,46 @@ function onLike(req, res) {
     return res.status(400).send('Bad Request');
   }
 
-  const ref = '/entries/' + identifier;
-
-  admin.database().ref(ref)
+  const ref = [ shortname, 'entries', identifier ].join('/');
+  db.ref(ref)
     .once('value')
     .then((snapshot) => {
-      let val = snapshot.val();
-      if (!val) {
-        val = {
-          shortname: shortname,
-          title: name,
-          url: link,
-          users: [ ]
-        };
-      }
+      let val = snapshot.val() || {
+        title: name,
+        url: link
+      };
+      val.users = val.users || [ ];
 
-      let idx = val.users.indexOf(user);
+      return Promise.resolve(val);
+    })
+    .then((val) => {
+      const idx = val.users.indexOf(user);
       if (idx >= 0) {
         val.users.splice(idx, 1);
       } else {
         val.users.push(user);
       }
 
-      let ret = {
-        liked: idx < 0,
-        count: val.users.length,
-        user: user
-      };
+      const liked = idx < 0;
 
-      admin.database().ref(ref)
-        .set(val)
-        .then(() => {
-          res.status(200).json(ret);
-        });
+      const retPromise = Promise.resolve({
+        user: user,
+        liked: liked,
+        count: val.users.length
+      });
+      const savePromise = db.ref(ref).set(val);
+      const logPromise = log(shortname, (liked ? 'Liked' : 'Unliked') + ' ' + name );
+
+      return Promise.all([ retPromise, savePromise, logPromise ]);
+    })
+    .then(([ ret ]) => {
+      res.status(200).json(ret);
     });
+}
+
+function log(shortname, msg) {
+  const ref = [ shortname, 'logs' ].join('/');
+  return db.ref(ref).push(moment().format() + ' ' + msg);
 }
 
 exports.count = functions.https.onRequest((req, res) => {
