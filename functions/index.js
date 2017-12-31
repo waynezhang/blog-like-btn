@@ -3,7 +3,7 @@
 const uuid = require('uuid');
 const moment = require('moment');
 
-const whitelist = [ 'http://lhzhang.com' ];
+const whitelist = [ 'https://lhzhang.com' ];
 const cors = require('cors')({
   origin: function (origin, callback) {
     if (whitelist.indexOf(origin) !== -1) {
