@@ -15,7 +15,11 @@ const cors = require('cors')({
 });
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
-admin.initializeApp(functions.config().firebase);
+const serviceAccount = require("./account_key.json");
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://like-btn.firebaseio.com"
+});
 
 const db = admin.database();
 
